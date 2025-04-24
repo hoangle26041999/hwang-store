@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chi tiết sản phẩm</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('home') }}">Hwang Store</a>
+    <a href="{{ url_for('cart') }}" class="btn btn-outline-light ms-auto">
+      🛒 Giỏ hàng
+      {% if session.get('cart') %}
+      <span class="badge bg-danger">{{ session['cart']|length }}</span>
+      {% endif %}
+    </a>
+  </div>
+</nav>
+
+<div class="container py-5">
+  <div class="row g-4">
+    <div class="col-md-6">
+      {% if media|length >= 3 %}
+      <!-- Ảnh chính -->
+      <div class="border rounded mb-3 text-center p-3 bg-light">
+        <img id="mainImage" src="{{ url_for('static', filename='images/' + media[0]['media_url']) }}"
+             class="img-fluid" style="max-height: 400px;">
+      </div>
+
+      <!-- Thumbnail -->
+      <div class="d-flex flex-wrap gap-2">
+        {% for m in media[:10] %}
+        {% if m['media_type'] == 'image' %}
+        <img src="{{ url_for('static', filename='images/' + m['media_url']) }}"
+             onclick="document.getElementById('mainImage').src=this.src"
+             class="img-thumbnail" style="width: 100px; cursor: pointer;">
+        {% elif m['media_type'] == 'video' %}
+        <video src="{{ url_for('static', filename='images/' + m['media_url']) }}" muted
+               class="img-thumbnail" style="width: 100px; cursor: pointer;"
+               onclick="document.getElementById('mainImage').src=this.src"></video>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-6">
+      <div class="border p-4 rounded shadow-sm">
+        <h2>{{ product['name'] }}</h2>
+        <p class="text-muted">{{ product['description'] }}</p>
+
+        {% if product['sale_price'] and product['sale_price'] < product['price'] %}
+          <p>
+            <span class="text-muted text-decoration-line-through">{{ product['price'] }} VND</span><br>
+            <span class="text-danger fw-bold fs-4">{{ product['sale_price'] }} VND</span>
+          </p>
+        {% else %}
+          <h4 class="text-danger">{{ product['price'] }} VND</h4>
+        {% endif %}
+
+        <form method="get" action="{{ url_for('add_to_cart', product_id=product['id']) }}">
+          <div class="mb-3">
+            <label class="form-label">Số lượng</label>
+            <input type="number" name="quantity" value="1" min="1" class="form-control w-50">
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">🛒 Thêm vào giỏ hàng</button>
+           <a href="{{ url_for('add_to_cart', product_id=product['id']) }}" class="btn btn-success">
+  🛒 Đặt hàng
+</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

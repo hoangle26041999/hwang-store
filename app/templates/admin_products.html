@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Quản lý sản phẩm</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+    <a class="btn btn-outline-light" href="{{ url_for('admin_add_product') }}">➕ Thêm sản phẩm</a>
+  </div>
+</nav>
+
+<div class="container py-5">
+  <h2 class="mb-4">🛍 Danh sách sản phẩm</h2>
+  <table class="table table-bordered text-center align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Tên</th>
+        <th>Giá gốc</th>
+        <th>Giá sale</th>
+        <th>Ảnh</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td>{{ p['id'] }}</td>
+        <td>{{ p['name'] }}</td>
+        <td>{{ p['price'] }}đ</td>
+        <td>
+          {% if p['sale_price'] and p['sale_price'] < p['price'] %}
+            <span class="text-danger fw-bold">{{ p['sale_price'] }}đ</span>
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+        <td>
+          <img src="{{ url_for('static', filename='images/' + p['image_url']) }}" alt="img" width="60">
+        </td>
+        <td>
+          <a href="{{ url_for('admin_edit_product', product_id=p['id']) }}" class="btn btn-sm btn-primary">✏️ Sửa</a>
+          <form action="{{ url_for('admin_delete_product', product_id=p['id']) }}" method="post" class="d-inline">
+            <button class="btn btn-sm btn-danger" onclick="return confirm('Xoá sản phẩm này?')">🗑 Xoá</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
