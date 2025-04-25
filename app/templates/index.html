@@ -58,9 +58,11 @@
 
 
 <!-- THÊM DÒNG NÀY để kiểm tra -->
-<img src="{{ url_for('static', filename='images/' + (p.image_url or 'placeholder.jpg')) }}"
+<img id="product-img-{{ p['id'] }}"
+     src="{{ url_for('static', filename='images/' + (p.image_url or 'placeholder.jpg')) }}"
      onerror="this.src='/static/images/placeholder.jpg'"
      class="card-img-top" alt="{{ p.name }}">
+
 
 
 
