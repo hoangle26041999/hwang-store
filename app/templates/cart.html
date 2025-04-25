@@ -9,7 +9,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="{{ url_for('home') }}">Hwang Store</a>
+    <a class="navbar-brand" href="{{ url_for('home') }}">IRENNA.COM</a>
   </div>
 </nav>
 
@@ -67,6 +67,34 @@
     <div class="alert alert-warning">Giỏ hàng của bạn đang trống.</div>
   {% endif %}
 </div>
+<footer class="bg-dark text-white mt-5 pt-4 pb-2">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>🛍 IRENNA STORE</h5>
+        <p>Sản phẩm chính hãng, tư vấn tận tâm. Mua hàng an tâm, nhận hàng thanh toán.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>📍 Bản đồ cửa hàng</h5>
+        <div class="ratio ratio-4x3">
+          <iframe src="https://www.google.com/maps/embed?pb=..."
+                  width="100%" height="100%" style="border:0;" allowfullscreen=""
+                  loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>📞 Liên hệ</h5>
+        <ul class="list-unstyled">
+          <li>Hotline: 0868 601 796</li>
+          <li>Email: irenna@gmail.com</li>
+          <li>Địa chỉ: Đông Anh, Hà Nội</li>
+        </ul>
+      </div>
+    </div>
+    <hr class="border-light">
+    <p class="text-center mb-0">© 2025 HWANG STORE. All rights reserved.</p>
+  </div>
+</footer>
 <script>
 document.querySelectorAll('.quantity-input').forEach(input => {
   input.addEventListener('change', function () {

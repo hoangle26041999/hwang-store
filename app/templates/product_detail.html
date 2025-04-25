@@ -4,13 +4,30 @@
   <meta charset="UTF-8">
   <title>Chi tiết sản phẩm</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .product-thumbnail {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .product-img {
+      max-height: 400px;
+      object-fit: contain;
+    }
+    .best-seller-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 60px;
+    }
+  </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
   <div class="container">
-    <a class="navbar-brand" href="{{ url_for('home') }}">Hwang Store</a>
+    <a class="navbar-brand" href="{{ url_for('home') }}">IRENNA.COM</a>
     <a href="{{ url_for('cart') }}" class="btn btn-outline-light ms-auto position-relative" id="cart-icon">
-      🛒 Giỏ hàng
+      🍎 Giỏ hàng
       {% if session.get('cart') %}
       <span class="badge bg-danger">{{ session['cart']|length }}</span>
       {% endif %}
@@ -22,15 +39,12 @@
   <div class="row g-4">
     <div class="col-md-6">
       <div class="border rounded mb-3 text-center p-3 bg-light">
-        <img id="mainImage" src="{{ url_for('static', filename='images/' + media[0]['media_url']) }}"
-             class="img-fluid" style="max-height: 400px;">
+        <img id="mainImage" src="{{ url_for('static', filename='images/' + media[0]['media_url']) }}" class="img-fluid product-img">
       </div>
       <div class="d-flex flex-wrap gap-2">
         {% for m in media[:10] %}
           {% if m['media_type'] == 'image' %}
-            <img src="{{ url_for('static', filename='images/' + m['media_url']) }}"
-                 onclick="document.getElementById('mainImage').src=this.src"
-                 class="img-thumbnail" style="width: 100px; cursor: pointer;">
+            <img src="{{ url_for('static', filename='images/' + m['media_url']) }}" onclick="document.getElementById('mainImage').src=this.src" class="img-thumbnail product-thumbnail">
           {% endif %}
         {% endfor %}
       </div>
@@ -38,7 +52,7 @@
 
     <div class="col-md-6">
       <div class="border p-4 rounded shadow-sm">
-        <h2>{{ product['name'] }}</h2>
+        <h2 class="mb-3">{{ product['name'] }}</h2>
         <p class="text-muted">{{ product['description'] }}</p>
 
         {% if product['sale_price'] and product['sale_price'] < product['price'] %}
@@ -50,11 +64,10 @@
           <h4 class="text-danger">{{ product['price']|currency }} VND</h4>
         {% endif %}
 
-        <!-- Chỉ còn nút Đặt hàng -->
         <form method="POST" action="{{ url_for('add_to_cart', product_id=product['id']) }}">
           <div class="mb-3">
             <label class="form-label">Số lượng</label>
-            <input type="number" name="quantity" value="1" min="1" class="form-control w-50">
+            <input type="number" name="quantity" value="1" min="1" class="form-control w-50" id="quantity">
           </div>
           <input type="hidden" name="redirect" value="checkout">
           <button type="submit" class="btn btn-success">⚡ Đặt hàng</button>
@@ -62,60 +75,59 @@
       </div>
     </div>
   </div>
+
+  <!-- Best Seller Section -->
+  <div class="best-seller-title">🔥 Sản phẩm bán chạy</div>
+  <div class="row row-cols-2 row-cols-md-3 g-4 mt-3">
+    {% for p in best_sellers %}
+    <div class="col">
+      <div class="card h-100">
+        <img src="{{ url_for('static', filename='images/' + (p.image_url or 'placeholder.jpg')) }}" class="card-img-top" style="height: 250px; object-fit: cover;">
+        <div class="card-body d-flex flex-column">
+          <h6 class="card-title">{{ p.name }}</h6>
+          {% if p.sale_price and p.sale_price < p.price %}
+            <p>
+              <small class="text-muted text-decoration-line-through">{{ p.price|currency }} VND</small><br>
+              <strong class="text-danger">{{ p.sale_price|currency }} VND</strong>
+            </p>
+          {% else %}
+            <p class="text-danger fw-bold">{{ p.price|currency }} VND</p>
+          {% endif %}
+          <a href="{{ url_for('product_detail', product_id=p.id) }}" class="btn btn-outline-primary btn-sm mt-auto">Xem chi tiết</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
-
-<!-- JS Animation -->
-<script>
-  const mainImage = document.getElementById("mainImage");
-  const cartIcon = document.getElementById("cart-icon");
-
-  document.getElementById("addBtn").addEventListener("click", function () {
-    const qty = document.getElementById("quantity").value;
-    const url = "{{ url_for('add_to_cart', product_id=product['id']) }}";
-
-    // Animation clone
-    const imgClone = mainImage.cloneNode(true);
-    const rect = mainImage.getBoundingClientRect();
-    imgClone.style.position = "fixed";
-    imgClone.style.left = rect.left + "px";
-    imgClone.style.top = rect.top + "px";
-    imgClone.style.width = mainImage.offsetWidth + "px";
-    imgClone.style.height = mainImage.offsetHeight + "px";
-    imgClone.style.transition = "all 0.8s ease-in-out";
-    imgClone.style.zIndex = 1000;
-    document.body.appendChild(imgClone);
-
-    const cartRect = cartIcon.getBoundingClientRect();
-
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body: "quantity=" + encodeURIComponent(qty)
-    }).then(res => {
-      if (res.ok) {
-        imgClone.style.left = cartRect.left + "px";
-        imgClone.style.top = cartRect.top + "px";
-        imgClone.style.opacity = 0.5;
-        imgClone.style.transform = "scale(0.2)";
-        setTimeout(() => {
-          imgClone.remove();
-          document.getElementById("addedAlert").classList.remove("d-none");
-          setTimeout(() => {
-            document.getElementById("addedAlert").classList.add("d-none");
-          }, 2000);
-        }, 800);
-      }
-    });
-  });
-
-  // Sync quantity
-  document.getElementById("quantity").addEventListener("input", function () {
-    document.getElementById("quickQty").value = this.value;
-  });
-</script>
+<footer class="bg-dark text-white mt-5 pt-4 pb-2">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>🛍 IRENNA STORE</h5>
+        <p>Sản phẩm chính hãng, tư vấn tận tâm. Mua hàng an tâm, nhận hàng thanh toán.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>📍 Bản đồ cửa hàng</h5>
+        <div class="ratio ratio-4x3">
+          <iframe src="https://www.google.com/maps/embed?pb=..."
+                  width="100%" height="100%" style="border:0;" allowfullscreen=""
+                  loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>📞 Liên hệ</h5>
+        <ul class="list-unstyled">
+          <li>Hotline: 0868 601 796</li>
+          <li>Email: irenna@gmail.com</li>
+          <li>Địa chỉ: Đông Anh, Hà Nội</li>
+        </ul>
+      </div>
+    </div>
+    <hr class="border-light">
+    <p class="text-center mb-0">© 2025 HWANG STORE. All rights reserved.</p>
+  </div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

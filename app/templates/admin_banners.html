@@ -1,0 +1,67 @@
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý Banners </title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .table td, .table th { vertical-align: middle; }
+  </style>
+</head>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">🎌 Quản lý banner</h3>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addBannerModal">+ Thêm banner</button>
+  </div>
+
+  <div class="row g-4">
+    {% for b in banners %}
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <img src="{{ url_for('static', filename='images/' + b.image_url) }}"
+             class="card-img-top" alt="Banner {{ b.id }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ b.title or 'Không có tiêu đề' }}</h5>
+          <p class="card-text text-muted small">{{ b.description or 'Không có mô tả' }}</p>
+        </div>
+        <div class="card-footer text-end">
+          <form method="POST" action="{{ url_for('admin_delete_banner', banner_id=b.id) }}">
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Xoá banner này?')">Xoá</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal thêm banner -->
+<div class="modal fade" id="addBannerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin_add_banner') }}" enctype="multipart/form-data">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">🖼️ Thêm banner mới</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">Tiêu đề</label>
+            <input type="text" name="title" class="form-control">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Mô tả</label>
+            <textarea name="description" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Ảnh</label>
+            <input type="file" name="image" accept="image/*" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

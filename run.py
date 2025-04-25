@@ -38,9 +38,23 @@ def home():
                                 LIMIT ?
                             OFFSET ?
                             ''', (per_page, offset)).fetchall()
-
+    banners = conn.execute('SELECT * FROM banners ORDER BY id DESC').fetchall()
     categories = conn.execute('SELECT * FROM categories').fetchall()
-    banners = conn.execute('SELECT * FROM banners').fetchall()
+    best_sellers = conn.execute('''
+                                SELECT p.*,
+                                       (SELECT media_url
+                                        FROM product_media
+                                        WHERE product_id = p.id
+                                          AND sort_order = 0 LIMIT 1 ) AS image_url,
+        SUM(od.quantity) AS total_sold
+                                FROM order_details od
+                                    JOIN products p
+                                ON p.id = od.product_id
+                                GROUP BY od.product_id
+                                ORDER BY total_sold DESC
+                                    LIMIT 3
+                                ''').fetchall()
+
     conn.close()
 
     total_pages = (total_products + per_page - 1) // per_page
@@ -51,26 +65,93 @@ def home():
         categories=categories,
         banners=banners,
         page=page,
+        best_sellers =best_sellers,
         total_pages=total_pages
     )
+
+@app.route('/category/<int:category_id>')
+def category_products(category_id):
+    page = request.args.get('page', default=1, type=int)
+    per_page = 6
+    offset = (page - 1) * per_page
+
+    conn = get_db_connection()
+    category = conn.execute('SELECT * FROM categories WHERE id = ?', (category_id,)).fetchone()
+
+    total_products = conn.execute('SELECT COUNT(*) FROM products WHERE category_id = ?', (category_id,)).fetchone()[0]
+
+    products = conn.execute('''
+        SELECT p.*, (
+            SELECT media_url FROM product_media
+            WHERE product_id = p.id AND sort_order = 0
+            LIMIT 1
+        ) AS image_url
+        FROM products p
+        WHERE p.category_id = ?
+        ORDER BY p.id DESC
+        LIMIT ? OFFSET ?
+    ''', (category_id, per_page, offset)).fetchall()
+    best_sellers = conn.execute('''
+                                SELECT p.*,
+                                       (SELECT media_url
+                                        FROM product_media
+                                        WHERE product_id = p.id
+                                          AND sort_order = 0 LIMIT 1 ) AS image_url,
+        SUM(od.quantity) AS total_sold
+                                FROM order_details od
+                                    JOIN products p
+                                ON p.id = od.product_id
+                                GROUP BY od.product_id
+                                ORDER BY total_sold DESC
+                                    LIMIT 3
+                                ''').fetchall()
+
+    categories = conn.execute('SELECT * FROM categories').fetchall()
+    banners = conn.execute('SELECT * FROM banners').fetchall()
+    conn.close()
+
+    total_pages = (total_products + per_page - 1) // per_page
+
+    return render_template('index.html',
+                           products=products,
+                           categories=categories,
+                           banners=banners,
+                           page=page,
+                           total_pages=total_pages,
+                           current_category=category,
+                           best_sellers=best_sellers
+                           )
 
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     conn = get_db_connection()
-    product = conn.execute('SELECT * FROM products WHERE id = ?', (product_id,)).fetchone()
 
-    # Lấy toàn bộ media liên quan đến sản phẩm
-    media = conn.execute(
-        'SELECT * FROM product_media WHERE product_id = ? ORDER BY sort_order',
-        (product_id,)
-    ).fetchall()
+    product = conn.execute('SELECT * FROM products WHERE id = ?', (product_id,)).fetchone()
+    media = conn.execute('SELECT * FROM product_media WHERE product_id = ? ORDER BY sort_order', (product_id,)).fetchall()
+
+    # ✅ Lấy danh sách best seller
+    best_sellers = conn.execute('''
+        SELECT p.*, (
+            SELECT media_url FROM product_media
+            WHERE product_id = p.id AND sort_order = 0
+            LIMIT 1
+        ) AS image_url,
+        SUM(od.quantity) AS total_sold
+        FROM order_details od
+        JOIN products p ON p.id = od.product_id
+        GROUP BY od.product_id
+        ORDER BY total_sold DESC
+        LIMIT 3
+    ''').fetchall()
 
     conn.close()
 
     if not product:
         return "Sản phẩm không tồn tại", 404
-    return render_template('product_detail.html', product=product, media=media)
+
+    return render_template('product_detail.html', product=product, media=media, best_sellers=best_sellers)
+
 
 @app.route('/test-image')
 def test_image():
@@ -374,6 +455,7 @@ def admin_dashboard():
 
     recent_orders = conn.execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5').fetchall()
     total_categories = conn.execute('SELECT COUNT(*) FROM categories').fetchone()[0]
+    total_banners = conn.execute('SELECT COUNT(*) FROM banners').fetchone()[0]
     conn.close()
 
     return render_template('admin_dashboard.html',
@@ -382,6 +464,7 @@ def admin_dashboard():
                            #total_feedbacks=total_feedbacks,
                            total_categories=total_categories,
                            today_orders=today_orders,
+                           total_banners=total_banners,
                            recent_orders=recent_orders)
 @app.route('/admin/logout')
 def admin_logout():
@@ -587,3 +670,40 @@ def admin_delete_category(category_id):
     conn.commit()
     conn.close()
     return redirect(url_for('admin_categories'))
+
+
+#banner
+@app.route('/admin/banners/add', methods=['POST'])
+@admin_required
+def admin_add_banner():
+    image = request.files['image']
+    title = request.form.get('title')
+    description = request.form.get('description')
+
+    if image and allowed_file(image.filename):
+        filename = secure_filename(image.filename)
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        conn = get_db_connection()
+        conn.execute('INSERT INTO banners (image_url, title, description) VALUES (?, ?, ?)',
+                     (filename, title, description))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('admin_banners'))
+
+@app.route('/admin/banners')
+@admin_required
+def admin_banners():
+    conn = get_db_connection()
+    banners = conn.execute('SELECT * FROM banners ORDER BY id DESC').fetchall()
+    conn.close()
+    return render_template('admin_banners.html', banners=banners)
+
+@app.route('/admin/banners/delete/<int:banner_id>', methods=['POST'])
+@admin_required
+def admin_delete_banner(banner_id):
+    conn = get_db_connection()
+    conn.execute('DELETE FROM banners WHERE id = ?', (banner_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_banners'))
