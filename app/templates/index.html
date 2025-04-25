@@ -5,13 +5,19 @@
   <meta charset="UTF-8">
   <title>Hwang Store - Trang chủ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .product-img {
+      height: 300px;
+      object-fit: cover;
+    }
+  </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" href="{{ url_for('home') }}">Hwang Store</a>
-    <a href="{{ url_for('cart') }}" class="btn btn-outline-light ms-auto">
+    <a href="{{ url_for('cart') }}" class="btn btn-outline-light ms-auto position-relative" id="cart-icon">
       🛒 Giỏ hàng
       {% if session.get('cart') %}
       <span class="badge bg-danger">{{ session['cart']|length }}</span>
@@ -19,6 +25,7 @@
     </a>
   </div>
 </nav>
+
 <div id="mainBanner" class="carousel slide mb-4" data-bs-ride="carousel">
   <div class="carousel-inner">
     <div class="carousel-item active">
@@ -34,7 +41,6 @@
            style="max-height: 420px; object-fit: cover;" alt="Banner 3">
     </div>
   </div>
-
   <button class="carousel-control-prev" type="button" data-bs-target="#mainBanner" data-bs-slide="prev">
     <span class="carousel-control-prev-icon"></span>
   </button>
@@ -43,74 +49,131 @@
   </button>
 </div>
 
-
 <div class="container py-5">
   <h1 class="mb-4">🛍 Sản phẩm mới</h1>
   <div class="row g-4">
     {% for p in products %}
     <div class="col-md-4 col-sm-6">
       <div class="card h-100">
-        <img src="{{ url_for('static', filename='images/' + p['image_url']) }}" class="card-img-top" alt="{{ p['name'] }}">
+
+
+<!-- THÊM DÒNG NÀY để kiểm tra -->
+<img src="{{ url_for('static', filename='images/' + (p.image_url or 'placeholder.jpg')) }}"
+     onerror="this.src='/static/images/placeholder.jpg'"
+     class="card-img-top" alt="{{ p.name }}">
+
+
+
+
+
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">{{ p['name'] }}</h5>
           {% if p['sale_price'] and p['sale_price'] < p['price'] %}
             <p class="card-text">
-              <span class="text-muted" style="text-decoration: line-through;">{{ p['price'] }} VND</span><br>
+              <span class="text-muted text-decoration-line-through">{{ p['price'] }} VND</span><br>
               <span class="text-danger fw-bold">{{ p['sale_price'] }} VND</span>
             </p>
           {% else %}
-            <p class="text-danger fw-bold">{{ p['price'] }} VND</p>
+            <p class="text-danger fw-bold">{{ p['price']|currency }} VND</p>
           {% endif %}
           <div class="mt-auto d-flex flex-wrap gap-2">
-            <a href="{{ url_for('add_to_cart', product_id=p['id']) }}" class="btn btn-outline-success btn-sm">
-              🛒 Thêm
-            </a>
-           <a href="{{ url_for('add_to_cart', product_id=p['id']) }}" class="btn btn-primary btn-sm">
-  🛒 Đặt hàng
-</a>
-
-            <a href="{{ url_for('product_detail', product_id=p['id']) }}" class="btn btn-secondary btn-sm">
-              Chi tiết
-            </a>
+            <button class="btn btn-outline-success btn-sm add-to-cart-btn" data-id="{{ p['id'] }}">🛒 Thêm</button>
+           <form method="POST" action="{{ url_for('add_to_cart', product_id=p['id']) }}">
+  <input type="hidden" name="quantity" value="1">
+  <input type="hidden" name="redirect" value="checkout">
+  <button type="submit" class="btn btn-primary btn-sm">🛒 Đặt hàng</button>
+</form>
+            <a href="{{ url_for('product_detail', product_id=p['id']) }}" class="btn btn-secondary btn-sm">Chi tiết</a>
           </div>
         </div>
       </div>
     </div>
     {% endfor %}
-  <nav aria-label="Page navigation">
-  <ul class="pagination justify-content-center mt-4">
-    {% if page > 1 %}
-    <li class="page-item">
-      <a class="page-link" href="{{ url_for('home', page=page - 1) }}">← Trang trước</a>
-    </li>
-    {% endif %}
-    {% for p in range(1, total_pages + 1) %}
-    <li class="page-item {% if p == page %}active{% endif %}">
-      <a class="page-link" href="{{ url_for('home', page=p) }}">{{ p }}</a>
-    </li>
-    {% endfor %}
-    {% if page < total_pages %}
-    <li class="page-item">
-      <a class="page-link" href="{{ url_for('home', page=page + 1) }}">Trang sau →</a>
-    </li>
-    {% endif %}
-  </ul>
-</nav>
-
   </div>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-4">
+      {% if page > 1 %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('home', page=page - 1) }}">← Trang trước</a>
+      </li>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="{{ url_for('home', page=p) }}">{{ p }}</a>
+      </li>
+      {% endfor %}
+      {% if page < total_pages %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('home', page=page + 1) }}">Trang sau →</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
 </div>
 
+<script>
+document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+  button.addEventListener('click', function () {
+
+    const productId = this.dataset.id;
+    const img = document.getElementById('product-img-' + productId);
+    const cartIcon = document.getElementById('cart-icon');
+    const url = `/add-to-cart/${productId}`;
+
+    const clone = img.cloneNode(true);
+    const rect = img.getBoundingClientRect();
+    clone.style.position = 'fixed';
+    clone.style.left = rect.left + 'px';
+    clone.style.top = rect.top + 'px';
+    clone.style.width = img.offsetWidth + 'px';
+    clone.style.height = img.offsetHeight + 'px';
+    clone.style.transition = 'all 0.8s ease-in-out';
+    clone.style.zIndex = 1000;
+    document.body.appendChild(clone);
+
+    const cartRect = cartIcon.getBoundingClientRect();
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: 'quantity=1'
+    }).then(res => {
+      if (res.ok) {
+        clone.style.left = cartRect.left + 'px';
+        clone.style.top = cartRect.top + 'px';
+        clone.style.opacity = 0.5;
+        clone.style.transform = 'scale(0.2)';
+        setTimeout(() => {
+          clone.remove();
+          const badge = cartIcon.querySelector('.badge');
+          if (badge) {
+            badge.innerText = parseInt(badge.innerText || '0') + 1;
+          } else {
+            const span = document.createElement('span');
+            span.className = 'badge bg-danger';
+            span.innerText = '1';
+            cartIcon.appendChild(span);
+          }
+        }, 800);
+      }
+    });
+  });
+});
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+
 <footer class="bg-dark text-white mt-5 pt-4 pb-2">
   <div class="container">
     <div class="row">
-
       <div class="col-md-4 mb-4">
         <h5>🛍 IRENNA STORE</h5>
         <p>Sản phẩm chính hãng, tư vấn tận tâm. Mua hàng an tâm, nhận hàng thanh toán.</p>
       </div>
-
       <div class="col-md-4 mb-4">
         <h5>📍 Bản đồ cửa hàng</h5>
         <div class="ratio ratio-4x3">
@@ -120,7 +183,6 @@
             referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
       </div>
-
       <div class="col-md-4 mb-4">
         <h5>📞 Liên hệ</h5>
         <ul class="list-unstyled">
@@ -129,12 +191,10 @@
           <li>Địa chỉ: Đông Anh, Hà Nội</li>
         </ul>
       </div>
-
     </div>
     <hr class="border-light">
     <p class="text-center mb-0">© 2025 HWANG STORE. All rights reserved.</p>
   </div>
 </footer>
-
+</body>
 </html>
-

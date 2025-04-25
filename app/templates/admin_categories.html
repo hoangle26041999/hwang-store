@@ -1,43 +1,75 @@
-
-<!DOCTYPE html>
-<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Danh mục sản phẩm</title>
+  <title>Quản lý danh mục</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .table td, .table th { vertical-align: middle; }
+  </style>
 </head>
-<body>
 
-<div class="container py-5">
-  <h2 class="mb-4">📁 Quản lý danh mục sản phẩm</h2>
-  <a href="{{ url_for('admin_add_category') }}" class="btn btn-primary mb-3">➕ Thêm danh mục</a>
-  <table class="table table-bordered text-center">
-    <thead class="table-dark">
-      <tr>
-        <th>ID</th>
-        <th>Tên danh mục</th>
-        <th>Mô tả</th>
-        <th>Thao tác</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in categories %}
-      <tr>
-        <td>{{ c['id'] }}</td>
-        <td>{{ c['name'] }}</td>
-        <td>{{ c['description'] }}</td>
-        <td>
-          <a href="{{ url_for('admin_edit_category', category_id=c['id']) }}" class="btn btn-sm btn-warning">Sửa</a>
-          <form method="post" action="{{ url_for('admin_delete_category', category_id=c['id']) }}" class="d-inline">
-            <button class="btn btn-sm btn-danger" onclick="return confirm('Xoá danh mục này?')">Xoá</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-0">📁 Quản lý danh mục</h3>
+      <small class="text-muted">Thêm, xoá các danh mục sản phẩm</small>
+    </div>
+    <div>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary me-2">← Quay về Dashboard</a>
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Thêm danh mục</button>
+    </div>
+  </div>
+
+  <div class="table-responsive shadow-sm rounded bg-white">
+    <table class="table table-striped table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 80px;">#</th>
+          <th>Tên danh mục</th>
+          <th class="text-end" style="width: 120px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in categories %}
+        <tr>
+          <td>{{ c.id }}</td>
+          <td>{{ c.name }}</td>
+          <td class="text-end">
+            <form method="POST" action="{{ url_for('admin_delete_category', category_id=c.id) }}"
+                  onsubmit="return confirm('Xoá danh mục này?')" class="d-inline">
+              <button class="btn btn-sm btn-outline-danger">Xoá</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="text-center text-muted py-4">Chưa có danh mục nào.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
+<!-- Modal thêm danh mục -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <form method="POST" action="{{ url_for('admin_add_category') }}">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">➕ Thêm danh mục mới</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Tên danh mục</label>
+          <input type="text" name="name" class="form-control" placeholder="VD: Kem dưỡng da" required>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>

@@ -1,73 +1,111 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - Admin</title>
+  <title>Admin Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    .dashboard-card {
-      transition: transform 0.2s;
-    }
-    .dashboard-card:hover {
-      transform: translateY(-5px);
-    }
-  </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="#">Admin Dashboard</a>
-    <a href="{{ url_for('home') }}" class="btn btn-outline-light ms-auto">🏠 Về trang chính</a>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Trang quản trị</a>
+    <a href="{{ url_for('admin_logout') }}">Đăng xuất</a>
   </div>
 </nav>
+<div class="container py-4">
+  <h3 class="mb-4">👑 Thống kê tổng quan</h3>
 
-<div class="container py-5">
-  <h1 class="mb-4">📊 Tổng quan hệ thống</h1>
-  <div class="row g-4">
-    <div class="col-md-4">
-      <a href="{{ url_for('admin_products') }}" class="text-decoration-none text-dark">
-        <div class="card dashboard-card shadow-sm p-3">
-          <h5>🛍 Quản lý sản phẩm</h5>
-          <p class="text-muted">Thêm, sửa, xoá sản phẩm trong cửa hàng</p>
+  <div class="row g-3">
+    <div class="col-md-3">
+      <a href="{{ url_for('admin_products') }}" class="text-decoration-none text-white">
+        <div class="card text-bg-primary h-100 shadow">
+          <div class="card-body">
+            <h5 class="card-title">📦 Quản Lý Sản phẩm</h5>
+            <p class="display-6">{{ total_products }}</p>
+          </div>
         </div>
       </a>
     </div>
-    <div class="col-md-4">
-      <a href="{{ url_for('admin_categories') }}" class="text-decoration-none text-dark">
-        <div class="card dashboard-card shadow-sm p-3">
-          <h5>📁 Danh mục</h5>
-          <p class="text-muted">Quản lý các danh mục sản phẩm</p>
+
+    <div class="col-md-3">
+      <a href="{{ url_for('admin_orders') }}" class="text-decoration-none text-white">
+        <div class="card text-bg-success h-100 shadow">
+          <div class="card-body">
+            <h5 class="card-title">🛒 Đơn hàng</h5>
+            <p class="display-6">{{ total_orders }}</p>
+          </div>
         </div>
       </a>
     </div>
-    <div class="col-md-4">
-      <a href="{{ url_for('admin_orders') }}" class="text-decoration-none text-dark">
-        <div class="card dashboard-card shadow-sm p-3">
-          <h5>📦 Đơn hàng</h5>
-          <p class="text-muted">Xem và xử lý đơn hàng của khách</p>
+
+    <div class="col-md-3">
+      <a href="#" class="text-decoration-none text-dark">
+        <div class="card bg-warning h-100 shadow">
+          <div class="card-body">
+            <h5 class="card-title">💬 Feedback</h5>
+            <p class="display-6">0</p>
+          </div>
         </div>
       </a>
     </div>
-    <div class="col-md-4">
-      <a href="{{ url_for('admin_feedbacks') }}" class="text-decoration-none text-dark">
-        <div class="card dashboard-card shadow-sm p-3">
-          <h5>💬 Phản hồi</h5>
-          <p class="text-muted">Phản hồi từ khách hàng</p>
+
+    <div class="col-md-3">
+      <a href="{{ url_for('admin_categories') }}" class="text-decoration-none text-white">
+        <div class="card bg-secondary h-100 shadow">
+          <div class="card-body">
+            <h5 class="card-title">📁 Danh mục</h5>
+            <p class="display-6">{{ total_categories }}</p>
+          </div>
         </div>
       </a>
     </div>
-    <div class="col-md-4">
-      <a href="{{ url_for('admin_login') }}" class="text-decoration-none text-dark">
-        <div class="card dashboard-card shadow-sm p-3">
-          <h5>🔒 Quản lý đăng nhập</h5>
-          <p class="text-muted">Bảo mật truy cập admin</p>
+
+    <div class="col-md-3">
+      <div class="card bg-dark text-white h-100 shadow">
+        <div class="card-body">
+          <h5 class="card-title">📅 Mới hôm nay</h5>
+          <p class="display-6">{{ today_orders }}</p>
         </div>
-      </a>
+      </div>
     </div>
   </div>
 </div>
+
+</div>
+<div class="container py-4">
+
+       <hr class="my-5">
+  <h4>🆕 Đơn hàng mới nhất</h4>
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Khách hàng</th>
+        <th>SĐT</th>
+        <th>Tổng tiền</th>
+        <th>Thời gian</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in recent_orders %}
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.customer_name }}</td>
+        <td>{{ o.phone }}</td>
+        <td>{{ o.total_price|currency }}₫</td>
+        <td>{{ o.created_at }}</td>
+        <td>
+          <a href="{{ url_for('admin_order_detail', order_id=o.id) }}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

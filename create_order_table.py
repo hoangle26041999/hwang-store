@@ -8,46 +8,15 @@ db_path = "/hwang1/instance/products.db"
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-# Xoá bảng nếu đã tồn tại
-cursor.execute("DROP TABLE IF EXISTS orders;")
-cursor.execute("DROP TABLE IF EXISTS order_details;")
 
-# Tạo lại bảng orders
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT,
-    phone TEXT,
-    address TEXT,
-    note TEXT,
-    total_price REAL,
-    created_at TEXT
-)
-""")
-
-# Tạo lại bảng order_details
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS order_details (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER,
-    product_id INTEGER,
-    quantity INTEGER,
-    unit_price REAL,
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
-)
-""")
 
 
 
 # Tạo lại bảng order_details
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS banners (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    image_url TEXT NOT NULL,
-    title TEXT,
-    description TEXT
-)
+UPDATE product_media SET media_type = 'main' WHERE media_type = 'image';
+
+
 """)
 
 # Lưu và đóng kết nối

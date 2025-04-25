@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thanh toán đơn hàng</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('home') }}">Hwang Store</a>
+    <a href="{{ url_for('cart') }}" class="btn btn-outline-light ms-auto position-relative" id="cart-icon">
+      🛒 Giỏ hàng
+      {% if session.get('cart') %}
+      <span class="badge bg-danger">{{ session['cart']|length }}</span>
+      {% endif %}
+    </a>
+  </div>
+</nav>
+
+<div class="container my-5">
+  <h2 class="mb-4 text-center">🧾 Thông tin thanh toán</h2>
+  <form method="POST" action="{{ url_for('checkout') }}" class="row g-4 needs-validation" novalidate>
+    <div class="col-md-6">
+      <label class="form-label">Họ và tên</label>
+      <input type="text" name="customer_name" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Số điện thoại</label>
+      <input type="text" name="phone" class="form-control" required>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Địa chỉ giao hàng</label>
+      <input type="text" name="address" class="form-control" required>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Ghi chú</label>
+      <textarea name="note" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="col-12 text-center">
+      <button type="submit" class="btn btn-success btn-lg px-5">Xác nhận đặt hàng</button>
+    </div>
+  </form>
+</div>
+
+<footer class="bg-dark text-white mt-5 pt-4 pb-2">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>🛍 IRENNA STORE</h5>
+        <p>Sản phẩm chính hãng, tư vấn tận tâm. Mua hàng an tâm, nhận hàng thanh toán.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>📍 Bản đồ cửa hàng</h5>
+        <div class="ratio ratio-4x3">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.0289912530436!2d105.77963037590504!3d21.03059748061673!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab468795d7e1%3A0xa3a25a03d64f98b1!2zVGjhuqFuaCBOZ3V54buFbiBU4burIFRow6BuaCBUcnVuZw!5e0!3m2!1svi!2s!4v1713943000000!5m2!1svi!2s"
+            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>📞 Liên hệ</h5>
+        <ul class="list-unstyled">
+          <li>Hotline: 0868 601 796</li>
+          <li>Email: irenna@gmail.com</li>
+          <li>Địa chỉ: Đông Anh, Hà Nội</li>
+        </ul>
+      </div>
+    </div>
+    <hr class="border-light">
+    <p class="text-center mb-0">© 2025 HWANG STORE. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
