@@ -52,7 +52,7 @@ def home():
                                 ON p.id = od.product_id
                                 GROUP BY od.product_id
                                 ORDER BY total_sold DESC
-                                    LIMIT 3
+                                    LIMIT 2
                                 ''').fetchall()
 
     conn.close()
